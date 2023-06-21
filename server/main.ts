@@ -18,9 +18,7 @@ io.on('connection', socket => {
 
 	socket.on('message', msg => {
 		console.log('message: ' + msg);
-		socket.broadcast.emit(
-			` el mensaje es ${msg} con el id ${socket.id}`
-		);
+		socket.broadcast.emit('message', msg);
 	});
 });
 
