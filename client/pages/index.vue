@@ -1,5 +1,6 @@
 <template>
 	<h1 class="text-4xl text-center font-bold">hola mundo</h1>
+	<Link to="/upload">Upload</Link>
 	<div class="flex flex-col items-center justify-center">
 		<input
 			class="border-2 border-gray-500 rounded-md p-2 w-1/2"
@@ -60,6 +61,4 @@ socket.on('message', data => {
 	console.log(data);
 	listMessages.value.push(data);
 });
-
-
 </script>
