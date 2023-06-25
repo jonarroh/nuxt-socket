@@ -18,11 +18,11 @@ export default {
 		},
 		width: {
 			type: String,
-			default: '60px'
+			default: '30px'
 		},
 		height: {
 			type: String,
-			default: '60px'
+			default: '30px'
 		}
 	}
 };

@@ -9,8 +9,47 @@ export default defineEventHandler(async event => {
 
 	//subir el file a cloudinary
 	const formData = new FormData();
+	formData.append('upload_preset', 'daybook');
 	formData.append('file', img);
-	formData.append('upload_preset', 'ml_default');
+	let resp: any = null;
+	try {
+		resp = await fetch(`${process.env.CLOUDINARY_URL}`, {
+			method: 'POST',
+			body: formData
+		}).then(res => res.json());
 
-	return { body };
+		console.log(resp);
+	} catch (error) {
+		console.log(error);
+		return {
+			statusCode: 500,
+			body: JSON.stringify({ msg: 'Error al subir la imagen' })
+		};
+	}
+
+	return resp as CloudinaryAsset;
 });
+
+interface CloudinaryAsset {
+	asset_id: string;
+	public_id: string;
+	version: number;
+	version_id: string;
+	signature: string;
+	width: number;
+	height: number;
+	format: string;
+	resource_type: string;
+	created_at: string;
+	tags: string[];
+	bytes: number;
+	type: string;
+	etag: string;
+	placeholder: boolean;
+	url: string;
+	secure_url: string;
+	folder: string;
+	access_mode: string;
+	original_filename: string;
+	original_extension: string;
+}

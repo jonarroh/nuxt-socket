@@ -2,10 +2,20 @@
 	<main
 		class="w-screen h-screen flex justify-center items-center flex-col"
 	>
-		<Copy :image="image" />
+		<div v-if="isUpload" class="drop-shadow-lg w-3/6 rounded-lg">
+			<Copy :image="image" :url-to-copy="urlToCopy.url" />
+			<div class="flex justify-center items-center mt-4">
+				<button
+					class="bg-blue-500 text-white rounded-md p-2"
+					@click="resetPage"
+				>
+					Return
+				</button>
+			</div>
+		</div>
 		<div
 			class="w-1/2 h-1/2 flex drop-shadow-lg rounded-lg flex-col"
-			v-show="!isUploading"
+			v-show="!isUploading && !isUpload"
 		>
 			<header class="mt-8 text-center">
 				<h1 class="text-4xl font-bold">Upload your image</h1>
@@ -60,6 +70,15 @@ definePageMeta({
 let dragTimeout: number | NodeJS.Timeout;
 let isUploading = ref(false);
 let image = ref<any>(null);
+let isUpload = ref(false);
+let urlToCopy = ref<any>(null);
+
+const resetPage = () => {
+	isUploading.value = false;
+	image.value = null;
+	isUpload.value = false;
+	urlToCopy.value = null;
+};
 
 const uploadFile = (e: DragEvent | MouseEvent): void => {
 	e.preventDefault();
@@ -85,14 +104,17 @@ const uploadFile = (e: DragEvent | MouseEvent): void => {
 		const img = await fileToBase64(file);
 		isUploading.value = true;
 		try {
-			const { data, pending, error } = await useFetch('/api/upload', {
+			const { data } = await useFetch('/api/upload', {
 				method: 'POST',
 				body: JSON.stringify({
 					file: img
 				})
 			});
-
-			image.value = img;
+			if (data) {
+				image.value = img;
+				isUpload.value = true;
+				urlToCopy.value = data.value;
+			}
 		} catch (error) {
 			console.error(error);
 		} finally {
@@ -122,7 +144,6 @@ const dropFile = (e: DragEvent): void => {
 	e.preventDefault();
 	e.stopPropagation();
 	const target = e.target as HTMLInputElement;
-	console.log(target);
 	target.classList.remove('drap-zone');
 
 	const files = e.dataTransfer?.files;
