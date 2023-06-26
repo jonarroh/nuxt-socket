@@ -62,6 +62,7 @@
 <script setup lang="ts">
 import Progress from '~/components/common/Progress.vue';
 import Copy from '~/components/common/Copy.vue';
+import { type CloudinaryAsset } from '~/server/api/upload.post';
 
 definePageMeta({
 	layout: 'index'
@@ -93,34 +94,53 @@ const uploadFile = (e: DragEvent | MouseEvent): void => {
 		return;
 	}
 	archivo.click();
-
 	archivo.addEventListener('change', async e => {
-		const target = e.target as HTMLInputElement;
+		await sendToCloudinary(e);
+	});
+};
+
+const sendToCloudinary = async (
+	e: DragEvent | Event
+): Promise<void> => {
+	if (e instanceof DragEvent) {
+		e.preventDefault();
+		e.stopPropagation();
+	}
+
+	const target = e.target as HTMLInputElement;
+	let file: File | undefined;
+	if (e instanceof DragEvent) {
+		file = e.dataTransfer?.files[0];
+	} else {
 		if (!target.files) {
-			alert('No se encontró el archivo');
 			return;
 		}
-		const file = target.files[0];
-		const img = await fileToBase64(file);
-		isUploading.value = true;
-		try {
-			const { data } = await useFetch('/api/upload', {
-				method: 'POST',
-				body: JSON.stringify({
-					file: img
-				})
-			});
-			if (data) {
-				image.value = img;
-				isUpload.value = true;
-				urlToCopy.value = data.value;
-			}
-		} catch (error) {
-			console.error(error);
-		} finally {
-			isUploading.value = false;
+		file = target.files[0];
+	}
+	if (!file) {
+		alert('No se encontro el archivo');
+		return;
+	}
+
+	const img = await fileToBase64(file);
+	isUploading.value = true;
+	try {
+		const { data } = await useFetch<CloudinaryAsset>('/api/upload', {
+			method: 'POST',
+			body: JSON.stringify({
+				file: img
+			})
+		});
+		if (data) {
+			image.value = img;
+			isUpload.value = true;
+			urlToCopy.value = data.value;
 		}
-	});
+	} catch (error) {
+		console.error(error);
+	} finally {
+		isUploading.value = false;
+	}
 };
 
 const addDragOver = (e: DragEvent): void => {
@@ -140,20 +160,13 @@ const removeDragOver = (e: DragEvent): void => {
 	}, 500);
 };
 
-const dropFile = (e: DragEvent): void => {
+const dropFile = async (e: DragEvent): Promise<void> => {
 	e.preventDefault();
 	e.stopPropagation();
 	const target = e.target as HTMLInputElement;
 	target.classList.remove('drap-zone');
-
-	const files = e.dataTransfer?.files;
-	if (!files) {
-		alert('No se encontro el archivo');
-		return;
-	}
-	fileToBase64(files[0]).then(data => {
-		console.log(data);
-	});
+	console.log(e.dataTransfer?.files);
+	await sendToCloudinary(e);
 };
 
 const fileToBase64 = (

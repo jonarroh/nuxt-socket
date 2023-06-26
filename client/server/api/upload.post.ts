@@ -30,7 +30,7 @@ export default defineEventHandler(async event => {
 	return resp as CloudinaryAsset;
 });
 
-interface CloudinaryAsset {
+export interface CloudinaryAsset {
 	asset_id: string;
 	public_id: string;
 	version: number;
